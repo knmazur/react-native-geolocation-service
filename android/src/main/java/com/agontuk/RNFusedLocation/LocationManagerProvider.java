@@ -94,7 +94,7 @@ public class LocationManagerProvider implements LocationProvider {
     if (location != null &&
       LocationUtils.getLocationAge(location) < locationOptions.getMaximumAge()
     ) {
-      Log.i(RNFusedLocationModule.TAG, "returning cached location.");
+      Log.i(RNFusedLocationModuleImpl.TAG, "returning cached location.");
       locationChangeListener.onLocationChange(LocationManagerProvider.this, location);
       return;
     }

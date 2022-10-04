@@ -1,6 +1,7 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+const isTurboModuleEnabled = global.__turboModuleProxy != null;
 
-const { RNFusedLocation } = NativeModules;
+const RNFusedLocation = isTurboModuleEnabled ? require('../codegen/NativeRNFusedLocation').default : NativeModules.RNFusedLocation;
 const LocationEventEmitter = new NativeEventEmitter(RNFusedLocation);
 
 const noop = () => {};

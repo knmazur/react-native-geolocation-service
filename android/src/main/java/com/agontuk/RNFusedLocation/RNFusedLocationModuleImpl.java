@@ -20,25 +20,20 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import java.util.HashMap;
 import java.util.Set;
 
-public class RNFusedLocationModule extends ReactContextBaseJavaModule implements ActivityEventListener, LocationChangeListener {
+public class RNFusedLocationModuleImpl implements ActivityEventListener, LocationChangeListener {
   public static final String TAG = "RNFusedLocation";
   private final HashMap<LocationProvider, PendingLocationRequest> pendingRequests;
   @Nullable private LocationProvider continuousLocationProvider;
+  private ReactApplicationContext context;
 
-  public RNFusedLocationModule(ReactApplicationContext reactContext) {
-    super(reactContext);
-
+  public RNFusedLocationModuleImpl(ReactApplicationContext reactContext) {
+    this.context = reactContext;
     reactContext.addActivityEventListener(this);
     this.pendingRequests = new HashMap<>();
 
     Log.i(TAG, TAG + " initialized");
   }
 
-  @NonNull
-  @Override
-  public String getName() {
-    return TAG;
-  }
 
   @Override
   public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
@@ -96,10 +91,7 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule implements
     }
   }
 
-  @ReactMethod
   public void getCurrentPosition(ReadableMap options, final Callback success, final Callback error) {
-    ReactApplicationContext context = getContext();
-
     if (!LocationUtils.hasLocationPermission(context)) {
       error.invoke(LocationUtils.buildError(LocationError.PERMISSION_DENIED, null));
       return;
@@ -112,10 +104,7 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule implements
     locationProvider.getCurrentLocation(locationOptions);
   }
 
-  @ReactMethod
   public void startObserving(ReadableMap options) {
-    ReactApplicationContext context = getContext();
-
     if (!LocationUtils.hasLocationPermission(context)) {
       emitEvent(
         "geolocationError",
@@ -133,7 +122,6 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule implements
     continuousLocationProvider.requestLocationUpdates(locationOptions);
   }
 
-  @ReactMethod
   public void stopObserving() {
     if (continuousLocationProvider != null) {
       continuousLocationProvider.removeLocationUpdates();
@@ -141,18 +129,7 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule implements
     }
   }
 
-  @ReactMethod
-  public void addListener(String eventName) {
-    // Keep: Required for RN built in Event Emitter Calls.
-  }
-
-  @ReactMethod
-  public void removeListeners(Integer count) {
-    // Keep: Required for RN built in Event Emitter Calls.
-  }
-
   private LocationProvider createLocationProvider(boolean forceLocationManager) {
-    ReactApplicationContext context = getContext();
     boolean playServicesAvailable = LocationUtils.isGooglePlayServicesAvailable(context);
 
     if (forceLocationManager || !playServicesAvailable) {
@@ -163,11 +140,7 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule implements
   }
 
   private void emitEvent(String eventName, WritableMap data) {
-    getContext().getJSModule(RCTDeviceEventEmitter.class).emit(eventName, data);
-  }
-
-  private ReactApplicationContext getContext() {
-    return getReactApplicationContext();
+    context.getJSModule(RCTDeviceEventEmitter.class).emit(eventName, data);
   }
 
   private static class PendingLocationRequest {
